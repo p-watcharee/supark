@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เครื่องคำนวณค่าธรรมเนียมขายออนไลน์</title>
+  <style>
+    :root {
+      --bg: #edf1f5;
+      --card: #ffffff;
+      --line: #d9e1ea;
+      --text: #17324d;
+      --muted: #6f8092;
+      --primary: #2f5f93;
+      --primary-soft: #e8f1fb;
+      --green: #dfeeda;
+      --peach: #f7dfcb;
+      --blue-soft: #e9eef8;
+      --summary: #eff8f7;
+      --danger: #cf4a4a;
+      --shadow: 0 18px 40px rgba(25, 47, 89, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(180deg, #f4f6f9 0%, #e9eef3 100%);
+      color: var(--text);
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 18px 42px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw, 2rem);
+      line-height: 1.15;
+    }
+
+    .title-wrap p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+      box-shadow: 0 8px 20px rgba(31, 58, 99, 0.08);
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-light { background: white; color: var(--text); }
+    .btn-soft { background: var(--primary-soft); color: var(--primary); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 420px) minmax(360px, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .phone-shell {
+      border: 4px solid var(--primary);
+      border-radius: 42px;
+      background: linear-gradient(180deg, #fcfdff 0%, #f5f7fa 100%);
+      box-shadow: var(--shadow);
+      padding: 22px 18px 24px;
+      position: sticky;
+      top: 16px;
+    }
+
+    .phone-notch {
+      width: 48%;
+      height: 14px;
+      margin: 0 auto 14px;
+      background: #dde5ee;
+      border-radius: 999px;
+      opacity: 0.9;
+    }
+
+    .screen-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .screen-title h2 {
+      margin: 0;
+      font-size: 1.08rem;
+    }
+
+    .screen-title span {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(25, 47, 89, 0.04);
+    }
+
+    .panel h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .panel p.helper {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field-grid.two {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.86rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .input-wrap {
+      display: grid;
+      grid-template-columns: 40px 1fr 40px;
+      gap: 6px;
+      align-items: stretch;
+    }
+
+    .input-wrap.simple {
+      grid-template-columns: 1fr;
+    }
+
+    .step-btn {
+      border-radius: 14px;
+      padding: 0;
+      font-size: 1.1rem;
+      background: var(--green);
+      color: #31583f;
+      min-height: 46px;
+      box-shadow: none;
+      border: 1px solid #bfd6b7;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      min-height: 46px;
+      border: 1.5px solid #b7c7d9;
+      border-radius: 14px;
+      padding: 0 14px;
+      font-size: 1rem;
+      outline: none;
+      color: var(--text);
+      background: #fffaf6;
+    }
+
+    input[type="number"]:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(47, 95, 147, 0.12);
+    }
+
+    .main-card {
+      background: var(--card);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid #d8e0ea;
+    }
+
+    .card-header {
+      background: linear-gradient(90deg, #2f5f93 0%, #4678b2 100%);
+      color: white;
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .card-header p {
+      margin: 6px 0 0;
+      opacity: 0.9;
+      font-size: 0.93rem;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .table-wrap {
+      padding: 0;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #dde6ef;
+      vertical-align: top;
+    }
+
+    th {
+      text-align: left;
+      background: #edf3fb;
+      font-size: 0.9rem;
+      color: #365a7d;
+    }
+
+    td.label-cell {
+      width: 42%;
+      background: #eef2fb;
+      font-weight: 600;
+    }
+
+    td.value-cell {
+      width: 24%;
+      background: #f8e2cf;
+      font-weight: 700;
+      font-size: 1.02rem;
+    }
+
+    td.result-cell {
+      background: #eef5e6;
+      width: 34%;
+      padding: 10px 12px;
+    }
+
+    .result-box {
+      min-height: 48px;
+      border: 1.5px solid #4b77ad;
+      background: #cfe3bd;
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #16283e;
+      line-height: 1.2;
+      padding: 8px 10px;
+    }
+
+    .result-box small {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #4a5f73;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 14px;
+      padding: 18px 22px 22px;
+      background: #fbfdff;
+      border-top: 1px solid #dde6ef;
+    }
+
+    .sum-box {
+      border-radius: 18px;
+      padding: 16px;
+      background: white;
+      border: 1px solid #dbe5ef;
+      box-shadow: 0 10px 20px rgba(25, 47, 89, 0.04);
+    }
+
+    .sum-box .k {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .sum-box .v {
+      font-size: clamp(1.15rem, 2vw, 1.45rem);
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .sum-box.good {
+      background: #effaf4;
+      border-color: #cfe6d6;
+    }
+
+    .sum-box.warn {
+      background: #fff7ee;
+      border-color: #f0dbc5;
+    }
+
+    .sum-box.dark {
+      background: #21364d;
+      color: white;
+      border-color: #21364d;
+    }
+
+    .sum-box.dark .k { color: rgba(255,255,255,.75); }
+
+    .footer-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .pill {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f1f6fb;
+      color: #33597d;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: #21364d;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 14px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: all .2s ease;
+      font-size: .92rem;
+      z-index: 10;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1060px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .phone-shell {
+        position: static;
+      }
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page { padding: 18px 12px 28px; }
+      .field-grid.two { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .actions { width: 100%; }
+      .actions button { flex: 1 1 auto; }
+      .card-header { align-items: flex-start; }
+      .badge { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>เครื่องคำนวณค่าธรรมเนียมขายออนไลน์</h1>
+        <p>ปรับค่าได้ทุกช่อง, มีค่าเริ่มต้นให้พร้อมใช้งาน และวางบน GitHub Pages ได้ทันที</p>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="saveDefaultsBtn">บันทึกค่าเริ่มต้น</button>
+        <button class="btn-soft" id="copyBtn">คัดลอกผลลัพธ์</button>
+        <button class="btn-light" id="resetBtn">รีเซ็ตโรงงาน</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="phone-shell">
+        <div class="phone-notch"></div>
+        <div class="screen-title">
+          <h2>หน้าจอกรอกข้อมูล</h2>
+          <span>ปรับค่าได้ทันที</span>
+        </div>
+
+        <div class="stack">
+          <section class="panel">
+            <h3>ข้อมูลออเดอร์</h3>
+            <div class="field-grid two">
+              <div class="field">
+                <label for="salePrice">ราคาขายต่อออเดอร์ (บาท)</label>
+                <div class="input-wrap simple">
+                  <input type="number" id="salePrice" step="0.01" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="qty">จำนวนออเดอร์</label>
+                <div class="input-wrap">
+                  <button class="step-btn" data-target="qty" data-step="-1">−</button>
+                  <input type="number" id="qty" step="1" min="1" />
+                  <button class="step-btn" data-target="qty" data-step="1">+</button>
+                </div>
+              </div>
+            </div>
+            <div class="field-grid two" style="margin-top:10px;">
+              <div class="field">
+                <label for="productCost">ต้นทุนสินค้า/วัตถุดิบรวม (บาท)</label>
+                <div class="input-wrap simple">
+                  <input type="number" id="productCost" step="0.01" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="packagingCost">Packaging + น้ำมัน (บาท/ออเดอร์)</label>
+                <div class="input-wrap">
+                  <button class="step-btn" data-target="packagingCost" data-step="-1">−</button>
+                  <input type="number" id="packagingCost" step="0.01" />
+                  <button class="step-btn" data-target="packagingCost" data-step="1">+</button>
+                </div>
+              </div>
+            </div>
+            <p class="helper">ต้นทุนสินค้า และ Packaging + น้ำมัน จะใช้คำนวณ “กำไรโดยประมาณ” แยกจากยอดรับจากแพลตฟอร์ม</p>
+          </section>
+
+          <section class="panel">
+            <h3>ค่าธรรมเนียมหลัก</h3>
+            <div class="field-grid">
+              <div class="field">
+                <label for="orderFeePct">ค่าธรรมเนียมต่อ order (%)</label>
+                <div class="input-wrap">
+                  <button class="step-btn" data-target="orderFeePct" data-step="-0.1">−</button>
+                  <input type="number" id="orderFeePct" step="0.01" />
+                  <button class="step-btn" data-target="orderFeePct" data-step="0.1">+</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="tiktokFeePct">ค่าคอมมิชชั่น TikTok (%)</label>
+                <div class="input-wrap">
+                  <button class="step-btn" data-target="tiktokFeePct" data-step="-0.1">−</button>
+                  <input type="number" id="tiktokFeePct" step="0.01" />
+                  <button class="step-btn" data-target="tiktokFeePct" data-step="0.1">+</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="growthFeePct">ค่าสนับสนุนการเติบโตของร้านค้า (%)</label>
+                <div class="input-wrap">
+                  <button class="step-btn" data-target="growthFeePct" data-step="-0.1">−</button>
+                  <input type="number" id="growthFeePct" step="0.01" />
+                  <button class="step-btn" data-target="growthFeePct" data-step="0.1">+</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="platformFixedFee">ค่าดูแล platform (บาท/ออเดอร์)</label>
+                <div class="input-wrap">
+                  <button class="step-btn" data-target="platformFixedFee" data-step="-0.1">−</button>
+                  <input type="number" id="platformFixedFee" step="0.01" />
+                  <button class="step-btn" data-target="platformFixedFee" data-step="0.1">+</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h3>ค่าขนส่งและแอฟฟิลิเอต</h3>
+            <div class="field-grid">
+              <div class="field-grid two">
+                <div class="field">
+                  <label for="shippingRate">อัตราค่าขนส่ง (บาท/กก.)</label>
+                  <div class="input-wrap">
+                    <button class="step-btn" data-target="shippingRate" data-step="-0.1">−</button>
+                    <input type="number" id="shippingRate" step="0.01" />
+                    <button class="step-btn" data-target="shippingRate" data-step="0.1">+</button>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="shippingStepKg">ปัดค่าขนส่งทุกกี่กก.</label>
+                  <div class="input-wrap">
+                    <button class="step-btn" data-target="shippingStepKg" data-step="-1">−</button>
+                    <input type="number" id="shippingStepKg" step="1" min="1" />
+                    <button class="step-btn" data-target="shippingStepKg" data-step="1">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="field-grid two">
+                <div class="field">
+                  <label for="weightKg">น้ำหนักรวม (กก.)</label>
+                  <div class="input-wrap">
+                    <button class="step-btn" data-target="weightKg" data-step="-0.5">−</button>
+                    <input type="number" id="weightKg" step="0.1" min="0" />
+                    <button class="step-btn" data-target="weightKg" data-step="0.5">+</button>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="shippingBlockFee">ค่าขนส่งต่อรอบที่คิดได้ (บาท)</label>
+                  <div class="input-wrap simple">
+                    <input type="number" id="shippingBlockFee" step="0.01" readonly />
+                  </div>
+                </div>
+              </div>
+              <div class="field-grid two">
+                <div class="field">
+                  <label for="affiliateInPct">ค่าแอฟฟิลิเอตใน platform (%)</label>
+                  <div class="input-wrap">
+                    <button class="step-btn" data-target="affiliateInPct" data-step="-0.1">−</button>
+                    <input type="number" id="affiliateInPct" step="0.01" />
+                    <button class="step-btn" data-target="affiliateInPct" data-step="0.1">+</button>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="affiliateOutPct">ค่าแอฟฟิลิเอตคนนอก platform (%)</label>
+                  <div class="input-wrap">
+                    <button class="step-btn" data-target="affiliateOutPct" data-step="-0.1">−</button>
+                    <input type="number" id="affiliateOutPct" step="0.01" />
+                    <button class="step-btn" data-target="affiliateOutPct" data-step="0.1">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="helper">ค่าขนส่งจะคิดแบบขั้นบันไดตามน้ำหนัก เช่น 0.40 บาท/กก. และปัดขึ้นทุก 5 กก. ดังนั้น 2 กก. = 2 บาท, 15 กก. = 6 บาท</p>
+          </section>
+        </div>
+      </aside>
+
+      <main>
+        <section class="main-card">
+          <div class="card-header">
+            <div>
+              <h2>สรุปสูตรและผลลัพธ์การคำนวณ</h2>
+              <p>ด้านล่างนี้จะอัปเดตอัตโนมัติตามค่าที่กรอกทางซ้าย</p>
+            </div>
+            <div class="badge" id="liveRevenueBadge">รายได้รวม ฿0.00</div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>รายการ</th>
+                  <th>ค่าปัจจุบัน</th>
+                  <th>ผลการคำนวณ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="label-cell">ค่าธรรมเนียมต่อ order</td>
+                  <td class="value-cell" id="viewOrderFeePct">0%</td>
+                  <td class="result-cell"><div class="result-box" id="resultOrderFee">฿0.00</div></td>
+                </tr>
+                <tr>
+                  <td class="label-cell">ค่าคอมมิชชั่น TikTok</td>
+                  <td class="value-cell" id="viewTiktokFeePct">0%</td>
+                  <td class="result-cell"><div class="result-box" id="resultTiktokFee">฿0.00</div></td>
+                </tr>
+                <tr>
+                  <td class="label-cell">ค่าสนับสนุนการเติบโตของร้านค้า</td>
+                  <td class="value-cell" id="viewGrowthFeePct">0%</td>
+                  <td class="result-cell"><div class="result-box" id="resultGrowthFee">฿0.00</div></td>
+                </tr>
+                <tr>
+                  <td class="label-cell">ค่าขนส่งที่ร้านค้าจ่ายจริง</td>
+                  <td class="value-cell" id="viewShippingMode">-</td>
+                  <td class="result-cell"><div class="result-box" id="resultShippingFee">฿0.00</div></td>
+                </tr>
+                <tr>
+                  <td class="label-cell">ค่าดูแล platform</td>
+                  <td class="value-cell" id="viewPlatformFixedFee">฿0.00</td>
+                  <td class="result-cell"><div class="result-box" id="resultPlatformFee">฿0.00</div></td>
+                </tr>
+                <tr>
+                  <td class="label-cell">ค่าแอฟฟิลิเอตใน platform</td>
+                  <td class="value-cell" id="viewAffiliateInPct">0%</td>
+                  <td class="result-cell"><div class="result-box" id="resultAffiliateInFee">฿0.00</div></td>
+                </tr>
+                <tr>
+                  <td class="label-cell">ค่าแอฟฟิลิเอตคนนอก platform</td>
+                  <td class="value-cell" id="viewAffiliateOutPct">0%</td>
+                  <td class="result-cell"><div class="result-box" id="resultAffiliateOutFee">฿0.00</div></td>
+                </tr>
+                <tr>
+                  <td class="label-cell">Packaging + น้ำมัน</td>
+                  <td class="value-cell" id="viewPackagingCost">฿0.00</td>
+                  <td class="result-cell"><div class="result-box" id="resultPackagingTotal">฿0.00</div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="summary-grid">
+            <div class="sum-box">
+              <div class="k">รายได้รวม</div>
+              <div class="v" id="sumRevenue">฿0.00</div>
+            </div>
+            <div class="sum-box warn">
+              <div class="k">รวมค่าธรรมเนียมแพลตฟอร์ม</div>
+              <div class="v" id="sumPlatformFees">฿0.00</div>
+            </div>
+            <div class="sum-box good">
+              <div class="k">ยอดรับสุทธิจากแพลตฟอร์ม</div>
+              <div class="v" id="sumPlatformNet">฿0.00</div>
+            </div>
+            <div class="sum-box dark">
+              <div class="k">กำไรโดยประมาณ</div>
+              <div class="v" id="sumApproxProfit">฿0.00</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="footer-note">
+          <strong>หมายเหตุ:</strong> หน้าเว็บนี้ออกแบบให้แก้ค่าได้ทั้งหมดตามอัตราจริงของร้านคุณ เพราะค่าธรรมเนียมแต่ละช่วงเวลาอาจเปลี่ยนได้
+          <div class="pill">บันทึกค่าเริ่มต้นแล้วเปิดหน้าเว็บใหม่ ค่าเดิมจะยังอยู่</div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const FACTORY_DEFAULTS = {
+      salePrice: 239,
+      qty: 1,
+      productCost: 0,
+      packagingCost: 5,
+      orderFeePct: 3.21,
+      tiktokFeePct: 6.42,
+      growthFeePct: 6.96,
+      platformFixedFee: 1.07,
+      shippingRate: 0.4,
+      shippingStepKg: 5,
+      shippingBlockFee: 2,
+      weightKg: 1,
+      affiliateInPct: 0,
+      affiliateOutPct: 0
+    };
+
+    const STORAGE_KEY = 'fee-calculator-defaults-v2';
+
+    const ids = [
+      'salePrice', 'qty', 'productCost', 'packagingCost', 'orderFeePct', 'tiktokFeePct',
+      'growthFeePct', 'platformFixedFee', 'shippingRate', 'shippingStepKg', 'shippingBlockFee', 'weightKg',
+      'affiliateInPct', 'affiliateOutPct'
+    ];
+
+    const inputs = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function getSavedDefaults() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function applyValues(values) {
+      ids.forEach(id => {
+        if (values[id] !== undefined) {
+          inputs[id].value = values[id];
+        }
+      });
+      calculate();
+    }
+
+    function loadInitialValues() {
+      const saved = getSavedDefaults();
+      applyValues(saved ? { ...FACTORY_DEFAULTS, ...saved } : FACTORY_DEFAULTS);
+    }
+
+    function num(id) {
+      const value = parseFloat(inputs[id].value);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function money(n) {
+      return '฿' + n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function pct(n) {
+      return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+    }
+
+    function calculate() {
+      const salePrice = Math.max(0, num('salePrice'));
+      const qty = Math.max(1, Math.round(num('qty') || 1));
+      const productCost = Math.max(0, num('productCost'));
+      const packagingCost = Math.max(0, num('packagingCost'));
+      const orderFeePct = Math.max(0, num('orderFeePct'));
+      const tiktokFeePct = Math.max(0, num('tiktokFeePct'));
+      const growthFeePct = Math.max(0, num('growthFeePct'));
+      const platformFixedFee = Math.max(0, num('platformFixedFee'));
+      const shippingRate = Math.max(0, num('shippingRate'));
+      const shippingStepKg = Math.max(1, Math.round(num('shippingStepKg') || 1));
+      const weightKg = Math.max(0, num('weightKg'));
+      const affiliateInPct = Math.max(0, num('affiliateInPct'));
+      const affiliateOutPct = Math.max(0, num('affiliateOutPct'));
+
+      if (String(inputs.qty.value) !== String(qty)) inputs.qty.value = qty;
+      if (String(inputs.shippingStepKg.value) !== String(shippingStepKg)) inputs.shippingStepKg.value = shippingStepKg;
+
+      const revenue = salePrice * qty;
+      const orderFee = revenue * orderFeePct / 100;
+      const tiktokFee = revenue * tiktokFeePct / 100;
+      const growthFee = revenue * growthFeePct / 100;
+      const shippingBlocks = weightKg > 0 ? Math.ceil(weightKg / shippingStepKg) : 0;
+      const shippingBlockFee = shippingRate * shippingStepKg;
+      inputs.shippingBlockFee.value = shippingBlockFee.toFixed(2).replace(/\.00$/, '');
+      const shippingFee = shippingBlocks * shippingBlockFee;
+      const platformFee = platformFixedFee * qty;
+      const affiliateInFee = revenue * affiliateInPct / 100;
+      const affiliateOutFee = revenue * affiliateOutPct / 100;
+      const packagingTotal = packagingCost * qty;
+      const totalPlatformFees = orderFee + tiktokFee + growthFee + shippingFee + platformFee + affiliateInFee + affiliateOutFee;
+      const platformNet = revenue - totalPlatformFees;
+      const approxProfit = platformNet - productCost - packagingTotal;
+
+      document.getElementById('viewOrderFeePct').textContent = pct(orderFeePct);
+      document.getElementById('viewTiktokFeePct').textContent = pct(tiktokFeePct);
+      document.getElementById('viewGrowthFeePct').textContent = pct(growthFeePct);
+      document.getElementById('viewPlatformFixedFee').textContent = money(platformFixedFee) + ' / ออเดอร์';
+      document.getElementById('viewAffiliateInPct').textContent = pct(affiliateInPct);
+      document.getElementById('viewAffiliateOutPct').textContent = pct(affiliateOutPct);
+      document.getElementById('viewPackagingCost').textContent = money(packagingCost) + ' / ออเดอร์';
+      document.getElementById('viewShippingMode').textContent = `${shippingRate.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท / กก.`;
+
+      document.getElementById('resultOrderFee').textContent = money(orderFee);
+      document.getElementById('resultTiktokFee').textContent = money(tiktokFee);
+      document.getElementById('resultGrowthFee').textContent = money(growthFee);
+      document.getElementById('resultPlatformFee').textContent = money(platformFee);
+      document.getElementById('resultAffiliateInFee').textContent = money(affiliateInFee);
+      document.getElementById('resultAffiliateOutFee').textContent = money(affiliateOutFee);
+      document.getElementById('resultPackagingTotal').textContent = money(packagingTotal);
+      document.getElementById('resultShippingFee').innerHTML = `${money(shippingFee)}<small>${shippingBlocks} รอบ × ${shippingStepKg} กก. × ${shippingRate.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท</small>`;
+
+      document.getElementById('sumRevenue').textContent = money(revenue);
+      document.getElementById('sumPlatformFees').textContent = money(totalPlatformFees);
+      document.getElementById('sumPlatformNet').textContent = money(platformNet);
+      document.getElementById('sumApproxProfit').textContent = money(approxProfit);
+      document.getElementById('liveRevenueBadge').textContent = `รายได้รวม ${money(revenue)}`;
+
+      calculate.state = {
+        salePrice, qty, productCost, packagingCost, orderFeePct, tiktokFeePct, growthFeePct,
+        platformFixedFee, shippingRate, shippingStepKg, shippingBlockFee, weightKg, affiliateInPct, affiliateOutPct,
+        shippingBlocks, revenue, orderFee, tiktokFee, growthFee, shippingFee, platformFee, affiliateInFee,
+        affiliateOutFee, packagingTotal, totalPlatformFees, platformNet, approxProfit
+      };
+    }
+
+    ids.forEach(id => {
+      inputs[id].addEventListener('input', calculate);
+      inputs[id].addEventListener('change', calculate);
+    });
+
+    document.querySelectorAll('.step-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.target;
+        const step = parseFloat(btn.dataset.step || '0');
+        const input = inputs[target];
+        const current = parseFloat(input.value || '0') || 0;
+        let next = current + step;
+        if (target === 'qty' || target === 'shippingStepKg') next = Math.max(1, Math.round(next));
+        if (target === 'weightKg') next = Math.max(0, next);
+        if (target === 'shippingBlockFee') return;
+        next = Math.max(0, next);
+        input.value = Number.isInteger(next) ? next : next.toFixed(2).replace(/\.00$/, '');
+        calculate();
+      });
+    });
+
+    document.getElementById('saveDefaultsBtn').addEventListener('click', () => {
+      const data = Object.fromEntries(ids.map(id => [id, inputs[id].value]));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      showToast('บันทึกค่าเริ่มต้นเรียบร้อย');
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      applyValues(FACTORY_DEFAULTS);
+      showToast('รีเซ็ตกลับเป็นค่าโรงงานแล้ว');
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      const s = calculate.state;
+      const text = [
+        'สรุปผลเครื่องคำนวณค่าธรรมเนียมขายออนไลน์',
+        `ราคาขายรวม: ${money(s.revenue)}`,
+        `ค่าธรรมเนียมรวมแพลตฟอร์ม: ${money(s.totalPlatformFees)}`,
+        `ยอดรับสุทธิจากแพลตฟอร์ม: ${money(s.platformNet)}`,
+        `กำไรโดยประมาณ: ${money(s.approxProfit)}`,
+        `รายละเอียด: order ${pct(s.orderFeePct)}, TikTok ${pct(s.tiktokFeePct)}, เติบโต ${pct(s.growthFeePct)}, ค่าขนส่ง ${money(s.shippingFee)} (${s.shippingBlocks} รอบ), ค่าดูแลแพลตฟอร์ม ${money(s.platformFixedFee)} / ออเดอร์`
+      ].join('\n');
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('คัดลอกผลลัพธ์แล้ว');
+      } catch (e) {
+        showToast('คัดลอกไม่สำเร็จ กรุณาลองใหม่');
+      }
+    });
+
+    loadInitialValues();
+  </script>
+</body>
+</html>
