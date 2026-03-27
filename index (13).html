@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>คำนวณค่าธรรมเนียม TikTok</title>
+  <style>
+    :root {
+      --blue: #2f64ad;
+      --blue2: #3f79c8;
+      --line: #d7dfea;
+      --head-bg: #eaf0f7;
+      --cell-bg: #fff7ef;
+      --yellow: #f4e8b8;
+      --green: #cfe8ba;
+      --text: #18314f;
+      --white: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: #eef2f7;
+      color: var(--text);
+      padding: 18px;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid #cfd8e4;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(24, 49, 79, 0.08);
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, var(--blue), var(--blue2));
+      color: white;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      min-width: 280px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      line-height: 1.25;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      opacity: 0.92;
+      font-size: 0.95rem;
+    }
+
+    .sell-box {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 16px;
+      padding: 10px 14px;
+      min-width: 255px;
+    }
+
+    .sell-box label {
+      display: block;
+      font-size: 0.85rem;
+      opacity: 0.92;
+      margin-bottom: 6px;
+    }
+
+    .input-money {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.96);
+      border-radius: 12px;
+      padding: 0 12px;
+      color: var(--text);
+      font-weight: 700;
+      overflow: hidden;
+    }
+
+    .input-money span {
+      font-size: 1.15rem;
+      margin-right: 6px;
+    }
+
+    .input-money input {
+      width: 100%;
+      border: 0;
+      outline: none;
+      padding: 12px 4px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text);
+      background: transparent;
+    }
+
+    .table-wrap {
+      padding: 0 22px 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: middle;
+    }
+
+    th {
+      background: var(--head-bg);
+      font-size: 1rem;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    td.no {
+      width: 58px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.35rem;
+      color: #000;
+      background: #fff;
+    }
+
+    td.label {
+      width: 38%;
+      font-size: 1.02rem;
+      font-weight: 600;
+      background: #f7fafc;
+    }
+
+    td.value-cell,
+    td.result {
+      background: var(--cell-bg);
+    }
+
+    .value-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .value-group input,
+    .value-group select {
+      width: 100%;
+      border: 1px solid #c7d4e4;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    .value-group input:focus,
+    .value-group select:focus,
+    .input-money input:focus {
+      box-shadow: 0 0 0 3px rgba(63,121,200,0.18);
+    }
+
+    .value-group .rate-input {
+      max-width: 110px;
+      text-align: right;
+    }
+
+    .value-group .unit-select {
+      max-width: 120px;
+      text-align: center;
+    }
+
+    td.result {
+      text-align: right;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #10263e;
+    }
+
+    .summary-row td {
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .summary-row.total td {
+      background: var(--yellow);
+    }
+
+    .summary-row.remaining td {
+      background: var(--green);
+    }
+
+    .summary-label {
+      text-align: left;
+    }
+
+    .summary-value {
+      text-align: right;
+      font-size: 1.7rem !important;
+      color: #000;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 22px 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      background: var(--blue);
+    }
+
+    button.secondary {
+      background: #6d7d93;
+    }
+
+    .note {
+      padding: 0 22px 22px;
+      color: #5a6980;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 780px) {
+      body { padding: 12px; }
+      .table-wrap { padding: 0 10px 14px; }
+      .actions, .note { padding-left: 10px; padding-right: 10px; }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      table { border: 0; margin-top: 12px; }
+      tr {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 12px;
+        background: white;
+      }
+      td {
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        width: 100% !important;
+      }
+      td.no::before { content: "ลำดับ"; float: left; font-size: 0.92rem; color: #5a6980; }
+      td.label::before { content: "รายการ"; display: block; font-size: 0.92rem; color: #5a6980; margin-bottom: 4px; }
+      td.value-cell::before { content: "ค่า / หน่วย"; display: block; font-size: 0.92rem; color: #5a6980; margin-bottom: 6px; }
+      td.result::before { content: "ผลลัพธ์"; float: left; font-size: 0.92rem; color: #5a6980; font-weight: 500; }
+      .summary-row td { display: flex; justify-content: space-between; align-items: center; }
+      .summary-value { font-size: 1.45rem !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="topbar">
+        <div class="title">
+          <h1>ค่าธรรมเนียมในติ๊กต็อก (ปรับ 1 ต.ค. 2568)</h1>
+          <p>ป้อนราคาขาย แล้วระบบจะคำนวณค่าธรรมเนียมรวมและต้นทุนคงเหลือให้อัตโนมัติ</p>
+        </div>
+
+        <div class="sell-box">
+          <label for="sellingPrice">ราคาขาย</label>
+          <div class="input-money">
+            <span>฿</span>
+            <input id="sellingPrice" type="number" min="0" step="0.01" value="100" />
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:58px">#</th>
+              <th>รายการ</th>
+              <th style="width:30%">% / บาท</th>
+              <th style="width:20%">ผลลัพธ์</th>
+            </tr>
+          </thead>
+          <tbody id="feeTableBody"></tbody>
+          <tbody>
+            <tr class="summary-row total">
+              <td colspan="3" class="summary-label">ค่าธรรมเนียมรวม</td>
+              <td id="totalFees" class="summary-value">20.33</td>
+            </tr>
+            <tr class="summary-row remaining">
+              <td colspan="3" class="summary-label">ต้นทุนคงเหลือ</td>
+              <td id="remainingAmount" class="summary-value">79.67</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn">บันทึกค่าปัจจุบัน</button>
+        <button id="resetBtn" class="secondary">รีเซ็ตค่าเริ่มต้น</button>
+      </div>
+
+      <div class="note">
+        หมายเหตุ: หน่วย <strong>%</strong> จะคำนวณจากราคาขายที่ป้อน ส่วนหน่วย <strong>บาท</strong> จะคิดเป็นค่าคงที่ต่อ 1 รายการ
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const defaults = [
+      { label: 'ค่าธรรมเนียมการทำธุรกรรม', rate: 3.21, unit: 'percent' },
+      { label: 'ค่าคอมมิชชั่นร้านค้าเล็ก ตต', rate: 6.42, unit: 'percent' },
+      { label: 'ค่าธรรมเนียมในตต.ต่อค่า', rate: 3.21, unit: 'percent' },
+      { label: 'ค่าส่งการสนับสนุนการเจริญเติบโต', rate: 6.42, unit: 'percent' },
+      { label: 'Infrastructure', rate: 1.07, unit: 'fixed' }
+    ];
+
+    const STORAGE_KEY = 'tiktok-fee-calculator-v1';
+    const feeTableBody = document.getElementById('feeTableBody');
+    const sellingPriceInput = document.getElementById('sellingPrice');
+    const totalFeesEl = document.getElementById('totalFees');
+    const remainingAmountEl = document.getElementById('remainingAmount');
+    const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    function formatMoney(value) {
+      const num = Number(value) || 0;
+      return num.toLocaleString('th-TH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function safeNumber(value) {
+      const num = parseFloat(value);
+      return Number.isFinite(num) ? num : 0;
+    }
+
+    function loadConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && Array.isArray(saved.rows) && saved.rows.length === defaults.length) {
+          return saved;
+        }
+      } catch (e) {}
+      return {
+        price: 100,
+        rows: structuredClone(defaults)
+      };
+    }
+
+    let config = loadConfig();
+
+    function renderRows() {
+      feeTableBody.innerHTML = '';
+      config.rows.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="no">${index + 1}</td>
+          <td class="label">${row.label}</td>
+          <td class="value-cell">
+            <div class="value-group">
+              <input
+                class="rate-input"
+                type="number"
+                min="0"
+                step="0.01"
+                value="${row.rate}"
+                data-index="${index}"
+                data-role="rate"
+              />
+              <select class="unit-select" data-index="${index}" data-role="unit">
+                <option value="percent" ${row.unit === 'percent' ? 'selected' : ''}>%</option>
+                <option value="fixed" ${row.unit === 'fixed' ? 'selected' : ''}>บาท</option>
+              </select>
+            </div>
+          </td>
+          <td class="result" id="result-${index}">0.00</td>
+        `;
+        feeTableBody.appendChild(tr);
+      });
+
+      sellingPriceInput.value = config.price;
+      bindInputs();
+      calculate();
+    }
+
+    function bindInputs() {
+      document.querySelectorAll('[data-role="rate"]').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.index);
+          config.rows[idx].rate = safeNumber(e.target.value);
+          calculate();
+        });
+      });
+
+      document.querySelectorAll('[data-role="unit"]').forEach(select => {
+        select.addEventListener('change', (e) => {
+          const idx = Number(e.target.dataset.index);
+          config.rows[idx].unit = e.target.value;
+          calculate();
+        });
+      });
+    }
+
+    function calculate() {
+      const price = safeNumber(sellingPriceInput.value);
+      config.price = price;
+
+      let total = 0;
+
+      config.rows.forEach((row, index) => {
+        const amount = row.unit === 'percent'
+          ? (price * safeNumber(row.rate) / 100)
+          : safeNumber(row.rate);
+
+        total += amount;
+        const cell = document.getElementById(`result-${index}`);
+        if (cell) cell.textContent = formatMoney(amount);
+      });
+
+      const remaining = price - total;
+      totalFeesEl.textContent = formatMoney(total);
+      remainingAmountEl.textContent = formatMoney(remaining);
+    }
+
+    sellingPriceInput.addEventListener('input', calculate);
+
+    saveBtn.addEventListener('click', () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      saveBtn.textContent = 'บันทึกแล้ว';
+      setTimeout(() => saveBtn.textContent = 'บันทึกค่าปัจจุบัน', 1200);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      config = { price: 100, rows: structuredClone(defaults) };
+      localStorage.removeItem(STORAGE_KEY);
+      renderRows();
+    });
+
+    renderRows();
+  </script>
+</body>
+</html>
